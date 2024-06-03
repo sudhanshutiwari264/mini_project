@@ -47,15 +47,23 @@ app.get('/login',( req, res)=>{
   res.render('login')
 });
 
+app.get('/profile', isLoggedIn,( req, res)=>{
+  console.log(req.user)
+  res.redirect('/login')
+});
+
 app.post('/login',async (req, res)=>{
   let { email, password } = req.body;
   let user = await userModel.findOne({email});
   if(!user) return res.status(500).send('something went wrong email');
 
   bcrypt.compare(password,user.password,(err,result)=>{
-    if(!result) return res.status(500).send('something went wrong pass');
-    let token = jwt.sign({email,username: user._id},'shhhhh')
-    res.status(200).send('You can login').cookie('token',token)
+    if(result){ 
+    let token = jwt.sign({ email: user.name,userid: user._id }, 'shhhhh');
+    res.cookie('token',token);
+    res.status(200).send('loggend in')   
+    }else{
+       res.status(500).send('something went wrong pass')}
   })
 });
 
@@ -63,5 +71,23 @@ app.get('/logout',(req, res)=>{
   res.cookie('token','')
   res.redirect('/login')
 })
+
+
+function isLoggedIn(req, res, next) {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).send('You must log in');
+  }
+
+  jwt.verify(token, 'shhhhh', (err, decoded) => {
+    if (err) {
+      return res.status(401).send('Invalid token');
+    }
+
+    req.user = decoded;
+    next();
+  });
+}
+
 
 app.listen(3000);
