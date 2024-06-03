@@ -50,18 +50,18 @@ app.get('/login',( req, res)=>{
 app.post('/login',async (req, res)=>{
   let { email, password } = req.body;
   let user = await userModel.findOne({email});
-  if(!user) res.status(500).send('something went wrong email');
+  if(!user) return res.status(500).send('something went wrong email');
 
   bcrypt.compare(password,user.password,(err,result)=>{
-    if(result) res.status(200).send('You can login')
-    res.redirect('/login')
-
+    if(!result) return res.status(500).send('something went wrong pass');
+    let token = jwt.sign({email,username: user._id},'shhhhh')
+    res.status(200).send('You can login').cookie('token',token)
   })
 });
 
 app.get('/logout',(req, res)=>{
   res.cookie('token','')
-  res.send('logout')
+  res.redirect('/login')
 })
 
 app.listen(3000);
