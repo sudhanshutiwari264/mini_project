@@ -39,7 +39,7 @@ app.post('/register',async (req, res)=>{
                       });
       let token = jwt.sign({ email: user.name,userid: user._id }, 'shhhhh');
       res.cookie('token',token);
-      res.send('registered')
+      res.render('profile')
     })
   });
 });
@@ -67,7 +67,7 @@ app.get('/edit/:id', isLoggedIn, async ( req, res)=>{
   res.render('edit',{post})
 });
 
-app.post('/update/:postid', isLoggedIn, async ( req, res)=>{
+app.post ('/update/:postid', isLoggedIn, async ( req, res)=>{
   let post =  await postModel.findOneAndUpdate({_id: req.params.postid},{content:req.body.content})
   res.redirect('/profile')
 });
