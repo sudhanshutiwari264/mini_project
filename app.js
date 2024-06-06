@@ -2,6 +2,8 @@ const express = require(`express`);
 const app = express();
 const userModel = require('./models/user')
 const postModel = require('./models/post')
+const multer = require('multer')
+const crypto = require('crypto')
 
 const path = require(`path`);
 const bcrypt = require(`bcrypt`);
@@ -13,6 +15,21 @@ app.set('view engine','ejs')
 app.use(express.urlencoded({extended:true}));
 app.use(express.json())
 app.use(cookieParser())
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/images/uploads')
+  },
+  filename: function (req, file, cb) {
+    const fn = crypto.randomBytes(12, function(err,bytes){
+      const fn = bytes.toString('hex') + path.extname(file.originalname)
+      cb(null,fn)
+    })
+  }
+})
+
+const upload = multer({ storage: storage })
+
 app.set(express.static(path.join(__dirname,'public')));
 
 app.get('/',(req, res)=>{
@@ -21,6 +38,14 @@ app.get('/',(req, res)=>{
 
 app.get('/login',( req, res)=>{
   res.render('login')
+});
+
+app.get('/test',( req, res)=>{
+  res.render('test')
+});
+
+app.post('/upload', upload.single('image'),( req, res)=>{
+  console.log(req.file);
 });
 
 app.post('/register',async (req, res)=>{
