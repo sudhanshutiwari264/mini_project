@@ -12,8 +12,13 @@
     <div class="w-full flex justify-end">
       <a class="bg-red-500 text-sm rounded-md px-3 py-2 mb-5 inline-block" href="/logout">Logout</a>
     </div>
-    <h3 class="text-3xl mb-5"><span class="font-light">Hello</span>, <%= user.name%> 👋</h3>
-    <h5>You can create a  new post.</h5>
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 rounded-md overflow-hidden">
+        <img class="w-full h-full object-cover" src="/images/uploads/<%= user.profilepic %>" alt="User Profile Picture">
+      </div>
+      <h3 class="text-3xl"><span class="font-light">Hello</span>, <%= user.name%> 👋</h3>
+    </div>
+    <h5 class="mb-5 mt-3">You can create a  new post.</h5>
     <form action="/post" method="post">
       <textarea placeholder="write your heart out" class="resize-none w-1/3 p-3 bg-transparent border-2 border-zinc-800 rounded-md outline-none" name="content" id=""></textarea>
       <input  class="px-3 w-40 py-3 bg-blue-500 block rounded-md mt-2 text-sm" type="submit" value="Create New Post">
@@ -28,7 +33,7 @@
             <small class="mt-2 inline-block"><%= post.likes.length%> likes</small>
             <div class="btns flex mt-5 gap-4">
               <a class="text-blue-500" href="/like/<%= post.id%>">
-                <%=post.likes.indexOf(user._id)? 'Like' : 'Unlike'%>
+                <%= post.likes.indexOf(user._id) === -1 ? 'UnLike' : 'like' %>
               </a>
               <a class="text-zinc-600 " href="/edit/<%= post._id%>">Edit</a>
             </div>

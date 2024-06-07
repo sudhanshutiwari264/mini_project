@@ -2,33 +2,18 @@ const express = require(`express`);
 const app = express();
 const userModel = require('./models/user')
 const postModel = require('./models/post')
-const multer = require('multer')
 const crypto = require('crypto')
-
 const path = require(`path`);
 const bcrypt = require(`bcrypt`);
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const user = require('./models/user');
+const upload = require('./config/multer')
 
 app.set('view engine','ejs')
 app.use(express.urlencoded({extended:true}));
 app.use(express.json())
 app.use(cookieParser())
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './public/images/uploads')
-  },
-  filename: function (req, file, cb) {
-    const fn = crypto.randomBytes(12, function(err,bytes){
-      const fn = bytes.toString('hex') + path.extname(file.originalname)
-      cb(null,fn)
-    })
-  }
-})
-
-const upload = multer({ storage: storage })
 
 app.set(express.static(path.join(__dirname,'public')));
 
@@ -36,17 +21,21 @@ app.get('/',(req, res)=>{
   res.render('index')
 });
 
+app.get('/profile/upload',(req, res)=>{
+  res.render('profileupload')
+});
+
+app.post('/upload',isLoggedIn,upload.single('image'),async (req, res)=>{
+  let user = await userModel.findOne({email:req.user.email})
+  user.profilepic = req.file.filename;
+  await user.save();
+  res.redirect('profile');
+});
+
 app.get('/login',( req, res)=>{
   res.render('login')
 });
 
-app.get('/test',( req, res)=>{
-  res.render('test')
-});
-
-app.post('/upload', upload.single('image'),( req, res)=>{
-  console.log(req.file);
-});
 
 app.post('/register',async (req, res)=>{
   let { username, name, age, email, password} = req.body;
@@ -64,14 +53,14 @@ app.post('/register',async (req, res)=>{
                       });
       let token = jwt.sign({ email: user.name,userid: user._id }, 'shhhhh');
       res.cookie('token',token);
-      res.render('profile')
+      res.send('Registered')
     })
   });
 });
 
 app.get('/profile', isLoggedIn,async ( req, res)=>{
   let user =  await userModel.findOne({email: req.user.email}).populate('posts')
-  //console.log(user.posts)
+  //console.log(user.profilepic)
   res.render('profile',{user})
 });
 
